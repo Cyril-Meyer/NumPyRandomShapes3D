@@ -1,0 +1,3 @@
+[submodule "NumPyDraw"]
+	path = NumPyDraw
+	url = https://github.com/Cyril-Meyer/NumPyDraw.git
