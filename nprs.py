@@ -16,13 +16,9 @@ def random_spheroid(array_shape, shapes_max_size):
     array = np.zeros(array_shape, dtype=dtype)
     center = randint(0, array.shape[0]-1), randint(0, array.shape[1]-1), randint(0, array.shape[2]-1)
     radius = randint(1, shapes_max_size[0]), randint(1, shapes_max_size[1]), randint(1, shapes_max_size[2])
-    # rotxy = np.deg2rad(randint(0, 90))
-    rotxy = 0
-    array[npd3d.spheroid_coordinate(array.shape, center, radius, rotxy)] = 1
+    rot = np.deg2rad(randint(0, 90)), np.deg2rad(randint(0, 90)), np.deg2rad(randint(0, 90))
 
-    array = scipy.ndimage.rotate(array, randint(-45, 45), axes=[0, 1], reshape=False)
-    array = scipy.ndimage.rotate(array, randint(-45, 45), axes=[1, 2], reshape=False)
-    array = scipy.ndimage.rotate(array, randint(-45, 45), axes=[0, 2], reshape=False)
+    array[npd3d.spheroid_coordinate(array.shape, center, radius, rot)] = 1
 
     return array
 
@@ -33,10 +29,9 @@ def add_random_spheroid(array, shapes_max_size, fill):
     """
     center = randint(0, array.shape[0]-1), randint(0, array.shape[1]-1), randint(0, array.shape[2]-1)
     radius = randint(1, shapes_max_size[0]), randint(1, shapes_max_size[1]), randint(1, shapes_max_size[2])
+    rot = np.deg2rad(randint(0, 90)), np.deg2rad(randint(0, 90)), np.deg2rad(randint(0, 90))
 
-    rotxy = np.deg2rad(randint(0, 90))
-
-    array[npd3d.spheroid_coordinate(array.shape, center, radius, rotxy)] = fill
+    array[npd3d.spheroid_coordinate(array.shape, center, radius, rot)] = fill
     return array
 
 
@@ -53,10 +48,6 @@ def random_shape(array_shape, shapes_max_size, iteration=10):
         array = cv2.dilate(array, kernel, iterations=1)
         kernel = np.random.randint(2, size=(5, 5), dtype=np.uint8)
         array = cv2.erode(array, kernel, iterations=1)
-
-    array = scipy.ndimage.rotate(array, randint(-10, 10), axes=[0, 1], reshape=False)
-    array = scipy.ndimage.rotate(array, randint(-10, 10), axes=[1, 2], reshape=False)
-    array = scipy.ndimage.rotate(array, randint(-10, 10), axes=[0, 2], reshape=False)
 
     return array
 
