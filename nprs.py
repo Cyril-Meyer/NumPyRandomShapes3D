@@ -45,10 +45,15 @@ def random_shape(array_shape, shapes_max_size, iteration=10):
 
     # dilation and erosion with random structuring element to create random shapes from spheroid
     for _ in range(iteration):
-        kernel = np.random.randint(2, size=(5, 5), dtype=np.uint8)
+        kernel = np.random.randint(2, size=(16, 16), dtype=np.uint8)
         array = cv2.dilate(array, kernel, iterations=1)
-        kernel = np.random.randint(2, size=(5, 5), dtype=np.uint8)
+        kernel = np.random.randint(2, size=(16, 16), dtype=np.uint8)
         array = cv2.erode(array, kernel, iterations=1)
+
+        array = np.moveaxis(array, [0, 1], [1, 2])
+
+    for _ in range(3 - (10 % 3)):
+        array = np.moveaxis(array, [0, 1], [1, 2])
 
     return array
 
@@ -94,10 +99,10 @@ def random_shapes(array_shape, shapes_number=1, shapes_max_size=(None, None, Non
         mask = random_shape(array.shape, shapes_max_size)
         array[mask == 1] = fill
 
-        array = np.moveaxis(array, [0, 1], [1, 2])
+        # array = np.moveaxis(array, [0, 1], [1, 2])
 
-    while array.shape != array_shape:
-        array = np.moveaxis(array, [0, 1], [1, 2])
+    # while array.shape != array_shape:
+        # array = np.moveaxis(array, [0, 1], [1, 2])
 
     return array
 
@@ -178,10 +183,10 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
 
         array[mask == 1] = shape[mask == 1]
 
-        array = np.moveaxis(array, [0, 1], [1, 2])
+        # array = np.moveaxis(array, [0, 1], [1, 2])
 
-    while array.shape != array_shape:
-        array = np.moveaxis(array, [0, 1], [1, 2])
+    # while array.shape != array_shape:
+        # array = np.moveaxis(array, [0, 1], [1, 2])
 
     array = np.clip(array + np.random.normal(final_added_gaussian_noise_mean, final_added_gaussian_noise_std, array.shape), 0, 255)
 
