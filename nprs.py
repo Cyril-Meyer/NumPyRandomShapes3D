@@ -2,9 +2,10 @@ from random import randint
 import numpy as np
 import cv2
 import scipy.ndimage
-import NumPyDraw.npd3d as npd3d
+import elasticdeform
 from perlin_numpy import generate_perlin_noise_3d
 from perlin_numpy import generate_fractal_noise_3d
+import NumPyDraw.npd3d as npd3d
 
 dtype = np.uint8
 
@@ -107,7 +108,7 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
     to avoid using to much parameters in the function, most of them are fixed at the start of the function.
     we recommend to avoid shapes_max_size > (256, 256, 256) or to disable perlin / fractal noise.
     """
-    fill_range = (0, 255)
+    fill_range = (0+64, 255-64)
     background_noise_mean = 128
     background_noise_std = 32
 
@@ -119,6 +120,9 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
 
     gaussian_noise_mean = 0
     gaussian_noise_std = 10
+
+    final_added_gaussian_noise_mean = 0
+    final_added_gaussian_noise_std = 20
 
     # check shapes_max_size argument
     sms = np.asarray(array_shape)
@@ -135,6 +139,8 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
     for _ in range(shapes_number):
         # create new shape
         fill = randint(fill_range[0], fill_range[1])
+        # mask = random_spheroid(array.shape, shapes_max_size)
+        # mask = (elasticdeform.deform_random_grid(mask, sigma=4, points=3) > 0) * 1
         mask = random_shape(array.shape, shapes_max_size, iteration=10)
         # mask = random_shape_multi_resolution(array.shape, shapes_max_size, resolution=2, iteration=10)
         if np.sum(mask) == 0:
@@ -176,5 +182,7 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
 
     while array.shape != array_shape:
         array = np.moveaxis(array, [0, 1], [1, 2])
+
+    array = np.clip(array + np.random.normal(final_added_gaussian_noise_mean, final_added_gaussian_noise_std, array.shape), 0, 255)
 
     return array
