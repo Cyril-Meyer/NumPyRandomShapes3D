@@ -1,8 +1,8 @@
+import random
 from random import randint
 import numpy as np
 import cv2
 import scipy.ndimage
-import elasticdeform
 from perlin_numpy import generate_perlin_noise_3d
 from perlin_numpy import generate_fractal_noise_3d
 import NumPyDraw.npd3d as npd3d
@@ -85,6 +85,30 @@ def random_shapes(array_shape, shapes_number=1, shapes_max_size=(None, None, Non
     return array
 
 
+def elastic_deformation(image, alpha=None, sigma=None, random_state=None):
+    """
+    apply random elastic deformation
+    function based on _elastic function from https://github.com/ShuangXieIrene/ssds.pytorch
+    """
+    if alpha is None:
+        alpha = image.shape[0] * random.uniform(0.5, 2)
+    if sigma is None:
+        sigma = int(image.shape[0] * random.uniform(0.5, 1))
+    if random_state is None:
+        random_state = np.random.RandomState(None)
+
+    for _ in range(3):
+        image = np.moveaxis(image, [0, 1], [1, 2])
+        shape = image.shape[:2]
+
+        dx, dy = [cv2.GaussianBlur((random_state.rand(*shape) * 2 - 1) * alpha, (sigma | 1, sigma | 1), 0) for _ in
+                  range(2)]
+        x, y = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]))
+        x, y = np.clip(x + dx, 0, shape[1] - 1).astype(np.float32), np.clip(y + dy, 0, shape[0] - 1).astype(np.float32)
+        image = cv2.remap(image, x, y, interpolation=cv2.INTER_LINEAR, borderValue=0, borderMode=cv2.BORDER_REFLECT)
+    return image
+
+
 def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None)):
     """
     return an image filled with random shapes with noise and texture.
@@ -131,10 +155,10 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
     for _ in range(shapes_number):
         # create new shape
         fill = randint(fill_range[0], fill_range[1])
-        # mask = random_spheroid(array.shape, shapes_max_size)
-        # mask = (elasticdeform.deform_random_grid(mask, sigma=4, points=3) > 0) * 1
-        mask = random_shape(array.shape, shapes_max_size, iteration=10)
+        mask = elastic_deformation(random_spheroid(array.shape, shapes_max_size))
+        # mask = (elasticdeform.deform_random_grid(random_spheroid(array.shape, shapes_max_size), sigma=4, points=3) > 0) * 1
         # mask = random_shape_multi_resolution(array.shape, shapes_max_size, resolution=2, iteration=3)
+        # mask = random_shape(array.shape, shapes_max_size, iteration=10)
 
         # skip if void shape
         if np.sum(mask) == 0:
