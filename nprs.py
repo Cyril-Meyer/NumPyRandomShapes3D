@@ -30,7 +30,7 @@ def add_random_spheroid(array, shapes_max_size, fill):
     """
     center = randint(0, array.shape[0]-1), randint(0, array.shape[1]-1), randint(0, array.shape[2]-1)
     radius = randint(1, shapes_max_size[0]), randint(1, shapes_max_size[1]), randint(1, shapes_max_size[2])
-    rot = np.deg2rad(randint(0, 90)), np.deg2rad(randint(0, 90)), np.deg2rad(randint(0, 90))
+    rot = np.deg2rad(randint(-20, 20)), np.deg2rad(randint(-20, 20)), np.deg2rad(randint(-20, 20))
 
     array[npd3d.spheroid_coordinate(array.shape, center, radius, rot)] = fill
     return array
@@ -69,11 +69,11 @@ def random_shape_multi_resolution(array_shape, shapes_max_size, resolution=1, it
     array = np.zeros(array_shape_multi, dtype=dtype)
     add_random_spheroid(array, shapes_max_size_multi, 1)
 
-    for i in range(resolution+4):
+    for i in range(resolution+1):
         for _ in range(iteration):
-            kernel = np.random.randint(2, size=(5, 5), dtype=np.uint8)
+            kernel = np.random.randint(2, size=(16, 16), dtype=np.uint8)
             array = cv2.dilate(array, kernel, iterations=1)
-            kernel = np.random.randint(2, size=(5, 5), dtype=np.uint8)
+            kernel = np.random.randint(2, size=(16, 16), dtype=np.uint8)
             array = cv2.erode(array, kernel, iterations=1)
 
         if i < resolution:
@@ -147,7 +147,7 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
         # mask = random_spheroid(array.shape, shapes_max_size)
         # mask = (elasticdeform.deform_random_grid(mask, sigma=4, points=3) > 0) * 1
         mask = random_shape(array.shape, shapes_max_size, iteration=10)
-        # mask = random_shape_multi_resolution(array.shape, shapes_max_size, resolution=2, iteration=10)
+        # mask = random_shape_multi_resolution(array.shape, shapes_max_size, resolution=2, iteration=3)
         if np.sum(mask) == 0:
             continue
 
@@ -168,9 +168,21 @@ def random_image(array_shape, shapes_number, shapes_max_size=(None, None, None))
                                  ((y_size//noise_res_y)+1)*noise_res_y,\
                                  ((z_size//noise_res_z)+1)*noise_res_z
 
-        texture_noise = generate_perlin_noise_3d(
-            (x_size, y_size, z_size), (noise_res_x, noise_res_y, noise_res_z), tileable=(False, False, False)
-        )
+        try:
+            texture_noise = generate_perlin_noise_3d(
+                (x_size, y_size, z_size), (noise_res_x, noise_res_y, noise_res_z), tileable=(False, False, False)
+            )
+
+        except:
+            print("generate_perlin_noise_3d failed, alternative used")
+            sX, sY, sZ = randint(1, 50) / 100, randint(1, 50) / 100, randint(1, 50) / 100
+            rX, rY, rZ = (x_size * sX) // 2, (y_size * sY) // 2, (z_size * sZ) // 2
+            arX, arY, arZ = np.arange(-rX - 1, rX + 1, sX), \
+                            np.arange(-rY - 1, rY + 1, sY), \
+                            np.arange(-rZ - 1, rZ + 1, sZ)
+            xx, yy, zz = np.meshgrid(arY, arX, arZ)
+            texture_noise = (np.sin(xx)/2 + np.sin(yy)/2 + np.sin(zz)/2 + np.tanh(xx+yy+zz)/2)/4
+            texture_noise = texture_noise[0:x_size, 0:y_size, 0:z_size]
 
         shape_subpart = shape[x_min:x_min+x_size, y_min:y_min+y_size, z_min:z_min+z_size].shape
 
