@@ -1,6 +1,8 @@
 # NumPyRandomShapes3D
 Generate 3D NumPy array with random shapes
 
+### Example
+![example](example/random_3D_image.gif)
 
 # Special requirements
 In addition to the usual dependencies (Numpy, OpenCV, SciPy), we use the following libraries :
