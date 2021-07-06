@@ -1,8 +1,22 @@
 import random
 import time
 import numpy as np
+import matplotlib.pyplot as plt
+import nprs2d
 import nprs
 import NumPyDraw.view as npdview
+
+print(nprs2d.dtype)
+
+t0 = time.time()
+RImage, RMask = nprs2d.random_image((128, 128), shapes_number=64, shapes_min_size=(8, 8), shapes_max_size=(64, 64))
+t1 = time.time()
+print("time:", t1 - t0)
+
+plt.imshow(RImage, cmap="gray")
+plt.show()
+plt.imshow(RMask, cmap="gray")
+plt.show()
 
 print(nprs.dtype)
 
